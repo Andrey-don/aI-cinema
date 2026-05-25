@@ -1,0 +1,16 @@
+# Large media files
+films/**/assets/images/*.jpg
+films/**/assets/images/*.png
+films/**/assets/videos/*.mp4
+films/**/assets/videos/*.mov
+films/**/assets/audio/*.mp3
+films/**/assets/audio/*.wav
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+*.swp
