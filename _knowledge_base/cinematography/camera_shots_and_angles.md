@@ -18,6 +18,14 @@
 | Сверху вниз | Слабость, уязвимость | high angle shot, vulnerable |
 | Голландский угол | Тревога, нестабильность | dutch angle, unsettling |
 | Птичий глаз | Ничтожность | bird's eye view, overhead |
+| Взгляд червя | Максимально снизу, объекты на переднем плане | worm's eye shot, worm eye view |
+| Взгляд бога | Персонаж крошечный, нагнетание | god's eye view, god eye shot |
+
+## Фрейминг (обрамление кадра)
+Объекты на переднем плане создают глубину и интерес:
+- ветки, арки, окна, трубы перед камерой
+- в промпте: `framed by [объект], foreground elements, depth`
+- Пример: `shot through frost-covered branches, foreground framing, depth`
 
 ## Промпты по ракурсам
 ```

@@ -37,5 +37,16 @@
 - Добавить персонажа: скопировать `_characters/_template/`
 - Вся теория: `_knowledge_base/`
 
+## Справочники (читать по запросу — не загружать автоматически)
+| Файл | Когда читать |
+|------|-------------|
+| `_knowledge_base/books/grammatika_kino_pajper.md` | Раскадровка, выбор планов/ракурсов/монтажа/цвета |
+| `_knowledge_base/books/biblia_ii_creatora.md` | Промпты, параметры MJ, анимация, морфинг, Suno, ElevenLabs |
+| `_knowledge_base/tools/seedream_fotorealizm.md` | Фотореализм, фиксация лица персонажа, Seedream vs MJ |
+| `_knowledge_base/tools/ai_prodakshn_workflow.md` | Общий воркфлоу: Style Lock, структура промптов, этапы продакшна |
+| `_knowledge_base/tools/kontekstnoe_redaktirovanie.md` | Правка готовых кадров: Flux Kontext / Seedream / NanoBanana |
+| `_knowledge_base/cinematography/` | Быстрая шпаргалка по конкретной теме |
+| `_knowledge_base/tools/` | При работе с конкретным инструментом |
+
 ## Текущий активный проект
 films/film_01_kostyor — «Костёр» по рассказу Джека Лондона
