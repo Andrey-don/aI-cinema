@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Cinema: Воркфлоу — два режима</title>
+<style>
+  :root {
+    --bg:        #080d14;
+    --bg2:       #0e1620;
+    --bg3:       #141e2a;
+    --card:      #111823;
+    --border:    #1c2b3a;
+    --border2:   #243344;
+    --text:      #dce6f0;
+    --text-muted:#7a96b0;
+    --blue:      #C8D8E8;
+    --blue-dim:  #7aa4c4;
+    --amber:     #E8A020;
+    --amber-dim: #b07010;
+    --green:     #4caf7d;
+    --red:       #e05555;
+    --code-bg:   #0a1520;
+    --shadow:    0 4px 24px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────── */
+  nav {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 0 40px;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    padding: 0 22px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .nav-logo h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--blue-dim);
+  }
+  .nav-logo p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .nav-section-title {
+    padding: 10px 22px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  nav a {
+    display: block;
+    padding: 7px 22px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all .18s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg3); }
+  nav a.mode-a { border-left-color: transparent; }
+  nav a.mode-b { border-left-color: transparent; }
+  nav a.active-a { color: var(--blue); border-left-color: var(--blue); background: rgba(200,216,232,.06); }
+  nav a.active-b { color: var(--amber); border-left-color: var(--amber); background: rgba(232,160,32,.06); }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-a { background: rgba(200,216,232,.15); color: var(--blue); }
+  .badge-b { background: rgba(232,160,32,.15); color: var(--amber); }
+
+  /* ── MAIN ─────────────────────────────────────────────── */
+  main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 48px 52px 80px;
+    max-width: 960px;
+  }
+
+  /* ── HEADER ───────────────────────────────────────────── */
+  .page-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header .kicker {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .page-header h1 {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 620px;
+  }
+
+  .mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 28px;
+  }
+  .mode-card {
+    border-radius: 12px;
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+  }
+  .mode-card.mode-a { border-color: rgba(200,216,232,.25); background: rgba(200,216,232,.04); }
+  .mode-card.mode-b { border-color: rgba(232,160,32,.25); background: rgba(232,160,32,.04); }
+  .mode-card .label {
+    font-size: 10px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .mode-a .label { color: var(--blue); }
+  .mode-b .label { color: var(--amber); }
+  .mode-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+  .mode-card p  { font-size: 13px; color: var(--text-muted); }
+  .mode-card .date { font-size: 12px; margin-top: 10px; font-weight: 600; }
+  .mode-a .date { color: var(--blue-dim); }
+  .mode-b .date { color: var(--amber-dim); }
+
+  /* ── SECTIONS ─────────────────────────────────────────── */
+  section { margin-bottom: 60px; }
+
+  h2 {
+    font-size: 22px; font-weight: 700; color: #fff;
+    margin-bottom: 20px; padding-top: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .section-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  h2.color-a .section-icon { background: rgba(200,216,232,.12); }
+  h2.color-b .section-icon { background: rgba(232,160,32,.12); }
+
+  h3 {
+    font-size: 15px; font-weight: 700; color: var(--text);
+    margin: 24px 0 10px;
+  }
+
+  p { margin-bottom: 12px; color: var(--text-muted); }
+  strong { color: var(--text); }
+
+  /* ── LAYER GRID ───────────────────────────────────────── */
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .layer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .layer-num {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .layer-card h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .layer-card p { font-size: 12px; margin-bottom: 4px; }
+  .layer-card .broken { font-size: 11px; color: var(--red); margin-top: 8px; }
+
+  /* ── STEPS ────────────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+  .step {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .mode-a-step .step-num { background: rgba(200,216,232,.15); color: var(--blue); }
+  .mode-b-step .step-num { background: rgba(232,160,32,.15); color: var(--amber); }
+  .step-body h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .step-body p  { font-size: 13px; margin-bottom: 0; }
+
+  /* ── CODE BLOCKS ──────────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    color: #a8c4d8;
+    margin: 12px 0 16px;
+    white-space: pre;
+  }
+  pre .comment { color: #4a6a7a; }
+  pre .arrow   { color: var(--amber); }
+  pre .key     { color: var(--blue); }
+
+  /* ── TABLES ───────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--bg3);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody td { padding: 10px 14px; color: var(--text-muted); vertical-align: top; }
+  tbody td strong { color: var(--text); }
+  tbody td:first-child { color: var(--text-muted); font-weight: 600; }
+
+  .star { color: var(--amber); }
+  .check { color: var(--green); }
+
+  /* ── ANNOTATION BLOCK ─────────────────────────────────── */
+  .annotation-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+  }
+  .ann-line { margin: 3px 0; }
+  .ann-key  { color: var(--amber); font-weight: 700; display: inline-block; min-width: 60px; }
+  .ann-val  { color: #a8c4d8; }
+
+  /* ── SCENE TABLE ──────────────────────────────────────── */
+  .scene-row td:nth-child(1) { color: var(--text-muted); font-weight: 700; width: 50px; }
+  .scene-row td:nth-child(2) { color: var(--text); font-weight: 600; }
+  .scene-row td:nth-child(3) { font-style: italic; }
+  .scene-row td:nth-child(4) { font-family: 'Consolas', monospace; font-size: 12px; color: var(--blue-dim); }
+
+  /* ── COLOR SWATCHES ───────────────────────────────────── */
+  .color-row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+  .color-swatch {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; flex-direction: column; gap: 4px;
+    min-width: 140px;
+    border: 1px solid var(--border);
+  }
+  .color-swatch .sw-name { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; opacity: .7; }
+  .color-swatch .sw-code { font-family: monospace; font-size: 11px; opacity: .6; }
+
+  /* ── CHECKLIST ────────────────────────────────────────── */
+  .checklist { list-style: none; margin: 12px 0; }
+  .checklist li {
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex; gap: 10px; align-items: baseline;
+  }
+  .checklist li::before { content: "☐"; color: var(--border2); font-size: 14px; }
+  .checklist li.done::before { content: "✓"; color: var(--green); }
+
+  /* ── INLINE LISTS ─────────────────────────────────────── */
+  ul.plain { list-style: none; padding: 0; margin: 8px 0 16px; }
+  ul.plain li {
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding-left: 16px;
+    position: relative;
+  }
+  ul.plain li::before {
+    content: "—";
+    position: absolute; left: 0;
+    color: var(--border2);
+  }
+  ul.plain li strong { color: var(--text); }
+
+  /* ── CALLOUT ──────────────────────────────────────────── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .callout.warn  { background: rgba(232,160,32,.08); border: 1px solid rgba(232,160,32,.2); }
+  .callout.info  { background: rgba(200,216,232,.06); border: 1px solid rgba(200,216,232,.2); }
+  .callout.warn  p, .callout.info p { margin: 0; color: var(--text-muted); }
+  .callout.warn  strong, .callout.info strong { color: var(--text); }
+
+  /* ── FLOW DIAGRAM ─────────────────────────────────────── */
+  .flow {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .flow-row {
+    display: flex; align-items: center; gap: 0;
+    margin: 4px 0;
+  }
+  .flow-box {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .flow-box.a-color { border-color: rgba(200,216,232,.3); color: var(--blue); }
+  .flow-box.b-color { border-color: rgba(232,160,32,.3); color: var(--amber); }
+  .flow-arrow { padding: 0 8px; color: var(--text-muted); font-size: 13px; }
+  .flow-down  { text-align: center; color: var(--border2); font-size: 18px; line-height: 1.2; padding: 0 0 0 20px; }
+
+  /* ── SKILL VARIANTS ───────────────────────────────────── */
+  .variant-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0;
+  }
+  .variant-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .variant-card .vname { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+  .variant-card p { font-size: 12px; margin: 0; }
+  .variant-card.active { border-color: rgba(232,160,32,.4); background: rgba(232,160,32,.05); }
+  .variant-card.active .vname { color: var(--amber); }
+
+  /* ── DIVIDER ──────────────────────────────────────────── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* ── SCROLLBAR ────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 28px 20px; }
+    .layers, .mode-cards, .variant-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ SIDEBAR ══════════════════ -->
+<nav>
+  <div class="nav-logo">
+    <h1>AI-Cinema</h1>
+    <p>«Костёр» · Производство</p>
+  </div>
+
+  <div class="nav-section-title">Навигация</div>
+  <a href="#foundation">Фундамент</a>
+  <a href="#mode-a">Режим A <span class="badge badge-a">Syntx</span></a>
+  <a href="#step-a1">  ↳ Шаг 1 — Персонаж</a>
+  <a href="#step-a2">  ↳ Шаг 2 — Локация</a>
+  <a href="#step-a3">  ↳ Шаг 3 — Сцена</a>
+  <a href="#step-a4">  ↳ Шаг 4 — Раскадровка</a>
+  <a href="#step-a5">  ↳ Шаг 5 — Планы</a>
+  <a href="#step-a6">  ↳ Шаг 6 — Видеопромпт</a>
+  <a href="#step-a7">  ↳ Шаг 7 — Склейка</a>
+  <a href="#mode-b">Режим B <span class="badge badge-b">Higgsfield</span></a>
+  <a href="#step-b1">  ↳ Подключение</a>
+  <a href="#step-b2">  ↳ Автоматический воркфлоу</a>
+  <a href="#step-b3">  ↳ Продолжение</a>
+  <a href="#step-b4">  ↳ Автопилот</a>
+
+  <div class="nav-section-title" style="margin-top:12px">Справочники</div>
+  <a href="#prompts-lib">Библиотека промптов</a>
+  <a href="#tools">Инструменты</a>
+  <a href="#kostyor">«Костёр» — 8 сцен</a>
+  <a href="#skill">Claude скилл</a>
+</nav>
+
+<!-- ══════════════════ MAIN ══════════════════════ -->
+<main>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="kicker">AI-Cinema · Рабочий документ</div>
+    <h1>Воркфлоу AI-кинопроизводства<br>— два режима</h1>
+    <p>Полный производственный процесс от мастер-кадра до смонтированного фильма.
+       Фундамент одинаков. Меняется только платформа.</p>
+
+    <div class="mode-cards">
+      <div class="mode-card mode-a">
+        <div class="label">Режим A · Активен сейчас</div>
+        <h3>Syntx</h3>
+        <p>Claude пишет промпты — ты вставляешь вручную в NanoBanana Pro и Kling 3.0 внутри Syntx.</p>
+        <div class="date">До 21 июня 2026</div>
+      </div>
+      <div class="mode-card mode-b">
+        <div class="label">Режим B · Следующий этап</div>
+        <h3>Claude Code + Higgsfield MCP</h3>
+        <p>Claude делает всё сам — одна команда запускает весь конвейер без переключения окон.</p>
+        <div class="date">После 21 июня 2026</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════ ФУНДАМЕНТ ══════ -->
+  <section id="foundation">
+    <h2><span class="section-icon">⚙</span>Фундамент — общий для обоих режимов</h2>
+
+    <p>Нейросеть обучена на профессиональном кино — говорить с ней нужно на языке кино.
+    Если вы описываете только <em>что происходит</em>, модель выдаёт усреднённый результат.
+    Если добавляете <em>как это снято</em> — она работает как исполнительный оператор.</p>
+
+    <h3>Трёхслойная структура каждого промпта</h3>
+    <div class="layers">
+      <div class="layer-card">
+        <div class="layer-num">Слой 1</div>
+        <h4>Литературный</h4>
+        <p>Кто, что происходит, зачем, какие эмоции.</p>
+        <div class="broken">Без него → нет смысла в кадре</div>
+      </div>
+      <div class="layer-card">
+        <div class="layer-num">Слой 2</div>
+        <h4>Режиссёрский</h4>
+        <p>Камера, план, ракурс, движение, свет, цвет.</p>
+        <div class="broken">Без него → красивая, но безликая открытка</div>
+      </div>
+      <div class="layer-card">
+        <div class="layer-num">Слой 3</div>
+        <h4>Технический</h4>
+        <p>Референсы, консистентность, параметры качества.</p>
+        <div class="broken">Без него → лица плывут, персонаж меняется</div>
+      </div>
+    </div>
+
+    <h3>Диагностика по слоям</h3>
+    <ul class="plain">
+      <li>Странное действие → виноват <strong>литературный</strong> слой</li>
+      <li>Красивый, но плоский кадр → виноват <strong>режиссёрский</strong> слой</li>
+      <li>Плывёт лицо, персонаж меняется → виноват <strong>технический</strong> слой</li>
+    </ul>
+
+    <h3>Минимум режиссёрского слоя — 4 параметра</h3>
+    <ul class="plain">
+      <li><strong>Положение камеры</strong> — от чьего лица мы смотрим</li>
+      <li><strong>Крупность плана</strong> — эмоциональная дистанция до героя</li>
+      <li><strong>Ракурс</strong> — сила, уязвимость или тревога</li>
+      <li><strong>Движение камеры</strong> — ритм и внимание зрителя</li>
+    </ul>
+
+    <h3>Значение планов</h3>
+    <ul class="plain">
+      <li><strong>Общий</strong> — задаёт пространство</li>
+      <li><strong>Средний</strong> — показывает взаимодействие</li>
+      <li><strong>Крупный</strong> — передаёт эмоцию</li>
+      <li><strong>Деталь (ECU)</strong> — добавляет глубину и акценты</li>
+    </ul>
+
+    <h3>Аннотации раскадровки (3 строки под каждой панелью)</h3>
+    <div class="annotation-block">
+      <div class="ann-line"><span class="ann-key">CAM:</span>  <span class="ann-val">[движение и тип камеры]</span></div>
+      <div class="ann-line"><span class="ann-key">MOVE:</span> <span class="ann-val">[действие персонажа — коротко, 2–6 слов]</span></div>
+      <div class="ann-line"><span class="ann-key">MOOD:</span> <span class="ann-val">[атмосфера]  /  VOICE: [реплика]  /  STYLE: [техника]</span></div>
+    </div>
+    <ul class="plain">
+      <li><strong>MOOD</strong> — для драмы, выживания (наш случай)</li>
+      <li><strong>VOICE</strong> — для диалоговых сцен</li>
+      <li><strong>STYLE</strong> — для боевых и экшн-сцен</li>
+    </ul>
+
+    <h3>Правило консистентности (Character Lock)</h3>
+    <ul class="plain">
+      <li>Описание персонажа — копировать <strong>дословно</strong>, не перефразировать</li>
+      <li>Лист персонажа = технический якорь. Загружать в каждую генерацию с персонажем</li>
+      <li>Сцена-эффекты (лёд на бороде, грязь) — в промпт сцены, <strong>не</strong> в лист персонажа</li>
+      <li>Лист персонажа — нейтральный, без сцены, без атмосферы, ровное освещение</li>
+    </ul>
+
+    <h3>Правило качества цепочки</h3>
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <p><strong>Всегда скачивать в 2K</strong> перед следующей загрузкой — особенно когда в кадре лицо.
+      Без скачивания деградирует качество в цепочке генераций.</p>
+    </div>
+
+    <h3>Раскадровка раньше видео</h3>
+    <p>Ошибка на уровне раскадровки стоит <strong>1 попытку</strong>. Ошибка на уровне видео — <strong>10</strong>.</p>
+    <p>Порядок: <strong>идея → лист персонажа → карта локации → раскадровка → видео.</strong></p>
+  </section>
+
+  <hr>
+
+  <!-- ══════ РЕЖИМ A ══════ -->
+  <section id="mode-a">
+    <h2 class="color-a"><span class="section-icon">🔵</span>Режим A — Syntx <span class="badge badge-a">до 21 июня</span></h2>
+    <p><strong>Принцип:</strong> Claude Code генерирует промпты → ты копируешь и вставляешь в Syntx вручную.</p>
+
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box a-color">Claude Code (VS Code)</div>
+        <div class="flow-arrow">→ copy/paste →</div>
+        <div class="flow-box">NanoBanana Pro</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-box">Kling 3.0</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-box">CapCut</div>
+      </div>
+    </div>
+
+    <!-- ШАГ 1 -->
+    <h3 id="step-a1">Шаг 1 — Подготовка персонажа <em>(один раз на весь фильм)</em></h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">1а</div>
+        <div class="step-body">
+          <h4>Взять мастер-кадр (PNG из Syntx)</h4>
+          <p>Лучший из сгенерированных в Syntx. Обязательно PNG.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">1б</div>
+        <div class="step-body">
+          <h4>Апскейл качества → скачать в 2K</h4>
+          <p>Загрузить в NanoBanana Pro + промпт <strong>#1 УЛУЧШЕНИЕ КАЧЕСТВА</strong>. Выбрать лучший, скачать в 2K.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">1в</div>
+        <div class="step-body">
+          <h4>Крупный план лица анфас → скачать в 2K</h4>
+          <p>Загрузить апскейл + промпт <strong>#4 ВЫЯВЛЕНИЕ ЛИЦА АНФАС</strong>. Сделать 4+ попыток, выбрать лучший.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">1г</div>
+        <div class="step-body">
+          <h4>Референс-карта → 7 ракурсов на одном листе</h4>
+          <p>Загрузить <strong>оба</strong> (апскейл полного роста + лучший крупный план) + промпт <strong>#5 РЕФЕРЕНС-КАРТА</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout info">
+      <div class="callout-icon">📁</div>
+      <p><strong>Результат:</strong> три файла на персонажа: <code>chelovek_upscale.png</code>, <code>chelovek_face.png</code>, <code>chelovek_refsheet.png</code></p>
+    </div>
+
+    <!-- ШАГ 2 -->
+    <h3 id="step-a2">Шаг 2 — Подготовка локации <em>(один раз на каждую среду)</em></h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">2а</div>
+        <div class="step-body">
+          <h4>Получить опорный кадр локации с персонажем</h4>
+          <p>Мастер-кадр или любой кадр, где виден нужный пейзаж.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">2б</div>
+        <div class="step-body">
+          <h4>Убрать персонажа из кадра</h4>
+          <p>Загрузить кадр + запрос: <em>"убери персонажа из кадра, оставь только окружение".</em> Скачать чистую локацию.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">2в</div>
+        <div class="step-body">
+          <h4>Карта местности — сетка 3×3 (9 видов) → промпт #6</h4>
+          <p>Загрузить чистую локацию + промпт <strong>#6 ДОРИСОВКА ЛОКАЦИИ</strong>. Для большего разнообразия — перегенерировать, используя лучшие кадры первой сетки как новые референсы.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout info">
+      <div class="callout-icon">📁</div>
+      <p><strong>Результат:</strong> <code>yukon_location_grid.png</code> — консистентный набор фонов для всего фильма.</p>
+    </div>
+
+    <!-- ШАГ 3 -->
+    <h3 id="step-a3">Шаг 3 — Сцена с персонажем в локации</h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">3а</div>
+        <div class="step-body">
+          <h4>Загрузить два референса</h4>
+          <p>Изображение 1 = кадр из карты местности. Изображение 2 = референс-карта персонажа.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">3б</div>
+        <div class="step-body">
+          <h4>Простой запрос на русском</h4>
+          <p>Описать что должен делать персонаж: <em>"человек идёт по тропе, вид сбоку, спина к камере".</em> Если не вышло — повторить несколько раз.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">3в</div>
+        <div class="step-body">
+          <h4>Апскейл лучшего результата → скачать в 2K</h4>
+          <p>Промпт <strong>#1 УЛУЧШЕНИЕ КАЧЕСТВА</strong>. Этот кадр станет основой для раскадровки.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 4 -->
+    <h3 id="step-a4">Шаг 4 — Раскадровка сцены <em>(1–2 сцены за раз)</em></h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">4а</div>
+        <div class="step-body">
+          <h4>Загрузить два референса</h4>
+          <p>Изображение 1 = готовая сцена с персонажем. Изображение 2 = карта местности.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">4б</div>
+        <div class="step-body">
+          <h4>Промпт #7 СЮЖЕТНАЯ РАСКАДРОВКА</h4>
+          <p>Описать 1–2 события кратко. Не писать всю историю целиком — будут разрывы, которые сложно анимировать.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">4в</div>
+        <div class="step-body">
+          <h4>Минимум 4 варианта → выбрать лучшие панели</h4>
+          <p>Из каждой сетки брать самые подходящие панели. NanoBanana не всегда с первого раза даёт идеальную раскадровку.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">4г</div>
+        <div class="step-body">
+          <h4>Если окружение неправильное</h4>
+          <p>Убедиться что карта местности загружена вторым референсом. Без неё модель не знает что находится за пределами помещения.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 5 -->
+    <h3 id="step-a5">Шаг 5 — Разноплановая раскадровка</h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">5а</div>
+        <div class="step-body">
+          <h4>Взять панель → апскейл → скачать</h4>
+          <p>Промпт <strong>#1 УЛУЧШЕНИЕ КАЧЕСТВА</strong> перед следующим шагом обязателен.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">5б</div>
+        <div class="step-body">
+          <h4>Промпт #8 СМЕНА ПЛАНОВ</h4>
+          <p>Получить 9 планов одного момента: экстремально дальний → долгий → средний → крупный → макро → низкий угол → высокий угол.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">5в</div>
+        <div class="step-body">
+          <h4>Выбрать нужный план для анимации</h4>
+          <p>Общий — пространство. Средний — взаимодействие. Крупный — эмоция. Деталь — глубина.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 6 -->
+    <h3 id="step-a6">Шаг 6 — Написание видеопромптов через Claude</h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">6а</div>
+        <div class="step-body">
+          <h4>Попросить Claude написать промпт</h4>
+          <p>Написать: <em>"создай видеопромпт для сцены [описание], персонаж Человек, 9:16, 15 секунд".</em> Claude использует ai-filmmaking скилл и генерирует Variant C.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">6б</div>
+        <div class="step-body">
+          <h4>Вставить в Syntx → Kling 3.0</h4>
+          <p>@image1 = референс-карта персонажа. @image2 = раскадровка. Длительность: 15 секунд.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 7 -->
+    <h3 id="step-a7">Шаг 7 — Склейка клипов без монтажных разрывов</h3>
+    <div class="steps">
+      <div class="step mode-a-step">
+        <div class="step-num">7а</div>
+        <div class="step-body">
+          <h4>Сгенерировать клип сцены N</h4>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">7б</div>
+        <div class="step-body">
+          <h4>Сохранить ПОСЛЕДНИЙ кадр клипа</h4>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">7в</div>
+        <div class="step-body">
+          <h4>Следующий клип: начать с последнего кадра</h4>
+          <p>Изображение 1 = последний кадр предыдущего клипа. Изображение 2 = следующая панель раскадровки. → плавный переход без склеек.</p>
+        </div>
+      </div>
+      <div class="step mode-a-step">
+        <div class="step-num">7г</div>
+        <div class="step-body">
+          <h4>Монтаж всех клипов в CapCut</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ══════ РЕЖИМ B ══════ -->
+  <section id="mode-b">
+    <h2 class="color-b"><span class="section-icon">🟡</span>Режим B — Claude Code + Higgsfield MCP <span class="badge badge-b">после 21 июня</span></h2>
+    <p><strong>Принцип:</strong> Claude делает всё сам — одна команда запускает полный конвейер.</p>
+
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box b-color">Claude Code</div>
+        <div class="flow-arrow">→ MCP →</div>
+        <div class="flow-box">NanoBanana Pro</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Kling / Seedance</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Итоговое видео</div>
+      </div>
+    </div>
+
+    <!-- ПОДКЛЮЧЕНИЕ -->
+    <h3 id="step-b1">Подключение <em>(один раз)</em></h3>
+    <pre>Claude Code → Settings → Connectors → Add Custom Connector
+<span class="key">URL:</span>      https://higgsfield.ai/mcp
+<span class="key">Название:</span> Higgsfield
+→ разрешить все запросы
+
+<span class="comment">В каждом чате: плюсик → Connectors → убедиться что Higgsfield ✓</span></pre>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <p><strong>Важное ограничение:</strong> загрузить изображение напрямую из Claude Code в Higgsfield нельзя.<br>
+      <strong>Обходной путь:</strong> зайти в Higgsfield → Image → плюсик → загрузить вручную. Потом написать Claude: <em>"используй последнее изображение из Higgsfield"</em> — он найдёт сам.</p>
+    </div>
+
+    <!-- ШАГ B2 -->
+    <h3 id="step-b2">Полный автоматический воркфлоу — одна команда</h3>
+    <pre>"Сделай сцену 1 «Костра»:
+Человек выходит на тропу на рассвете, собака плетётся сзади.
+<span class="arrow">→</span> Используй референс Человека из Higgsfield.
+<span class="arrow">→</span> Раскадровка 3×3, аннотации CAM/MOVE/MOOD.
+<span class="arrow">→</span> Видео в Kling 3.0, 15 секунд, 9:16."</pre>
+
+    <p style="margin-bottom:8px;"><strong>Этапы с подтверждением (говоришь "продолжай" на каждом):</strong></p>
+    <div class="steps">
+      <div class="step mode-b-step"><div class="step-num">1</div><div class="step-body"><h4>Креативный бриф</h4><p>Claude описывает концепцию сцены.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">2</div><div class="step-body"><h4>Референсы</h4><p>Claude показывает какие файлы из Higgsfield использует.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">3</div><div class="step-body"><h4>Шотлист</h4><p>Описание каждого кадра с CAM/MOVE/MOOD.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">4</div><div class="step-body"><h4>Промпты для изображений ← последний шанс до списания кредитов</h4><p>Проверить тщательно перед подтверждением.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">5</div><div class="step-body"><h4>Генерация изображений (NanoBanana Pro)</h4><p>Claude отправляет в Higgsfield, результаты видны в чате.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">6</div><div class="step-body"><h4>Генерация видео (Kling 3.0)</h4><p>Claude анимирует каждый кадр.</p></div></div>
+      <div class="step mode-b-step"><div class="step-num">7</div><div class="step-body"><h4>Сборка клипов → итоговое видео</h4><p>Все файлы сохраняются в папки: briefs/, prompts/, images/, videos/</p></div></div>
+    </div>
+
+    <!-- ШАГ B3 -->
+    <h3 id="step-b3">Продолжение истории (следующие сцены)</h3>
+    <pre>"Продолжи историю. Человек проваливается под лёд.
+<span class="arrow">→</span> Используй последний кадр предыдущего клипа как начало.
+<span class="arrow">→</span> Раскадровка от сцены 3."
+
+<span class="comment">Новую референс-карту создавать не нужно — персонаж тот же.</span></pre>
+
+    <h3>Исправление результата</h3>
+    <pre><span class="comment"># Если лицо поплыло:</span>
+"Исправь лицо в последнем кадре по референс-карте персонажа"
+
+<span class="comment"># Если окружение неверное:</span>
+"Добавь карту локации как второй референс и перегенерируй раскадровку"</pre>
+
+    <!-- АВТОПИЛОТ -->
+    <h3 id="step-b4">Автопилот — генерация по расписанию <em>(только desktop)</em></h3>
+    <div class="callout info">
+      <div class="callout-icon">ℹ</div>
+      <p>Только при установленном <strong>приложении Claude Code</strong> (не веб-версия).</p>
+    </div>
+    <pre>Routines <span class="arrow">→</span> New Routine <span class="arrow">→</span> Remote
+<span class="comment"># Remote работает без включённого компьютера</span>
+<span class="key">Репозиторий:</span> подключить GitHub проекта
+<span class="key">Расписание:</span>  ежедневно в 10:00 (или любое другое)
+<span class="key">Инструкция:</span>  "генерируй следующую сцену «Костра» по шаблону воркфлоу"</pre>
+  </section>
+
+  <hr>
+
+  <!-- ══════ БИБЛИОТЕКА ПРОМПТОВ ══════ -->
+  <section id="prompts-lib">
+    <h2><span class="section-icon">📋</span>Библиотека промптов для NanoBanana Pro</h2>
+    <p>Полные тексты: <code>_knowledge_base/tools/production_workflow_prompts.md</code></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Промпт</th>
+            <th>Вход</th>
+            <th>Выход</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Улучшение качества</strong></td><td>1 изображение</td><td>То же в 8K</td></tr>
+          <tr><td>2</td><td><strong>Улучшение + корректировка лица</strong></td><td>кадр + референс-карта</td><td>Исправленное лицо</td></tr>
+          <tr><td>3</td><td><strong>Замена лица</strong></td><td>основной кадр + лицо</td><td>Только лицо заменено</td></tr>
+          <tr><td>4</td><td><strong>Выявление лица анфас</strong></td><td>любой ракурс</td><td>Чистый портрет анфас</td></tr>
+          <tr><td>5</td><td><strong>Референс-карта персонажа</strong></td><td>полный рост + лицо (2 файла)</td><td>7 ракурсов на одном листе</td></tr>
+          <tr><td>6</td><td><strong>Дорисовка локации <span class="star">★</span></strong></td><td>локация без персонажа</td><td>Сетка 3×3, 9 видов</td></tr>
+          <tr><td>7</td><td><strong>Сюжетная раскадровка</strong></td><td>сцена + карта локации</td><td>Раскадровка 3×3</td></tr>
+          <tr><td>8</td><td><strong>Смена планов</strong></td><td>один кадр</td><td>9 планов: дальний→макро</td></tr>
+          <tr><td>9</td><td><strong>Смена углов</strong></td><td>один момент</td><td>9 уникальных углов</td></tr>
+          <tr><td>10</td><td><strong>Замена персонажа (простая)</strong></td><td>локация + персонаж</td><td>Персонаж в локации</td></tr>
+          <tr><td>11</td><td><strong>Замена персонажа (PRO)</strong></td><td>локация + персонаж</td><td>Профессиональная интеграция</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ══════ ИНСТРУМЕНТЫ ══════ -->
+  <section id="tools">
+    <h2><span class="section-icon">🛠</span>Инструменты — что когда использовать</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Задача</th><th>Инструмент</th><th>Режим</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Изображения (реализм)</td><td><strong>NanoBanana Pro</strong></td><td>A и B</td></tr>
+          <tr><td>Изображения (персонаж с лицом)</td><td><strong>Higs Soul</strong></td><td>только B</td></tr>
+          <tr><td>Анимация — тренировка, черновики</td><td><strong>Kling 3.0</strong></td><td>A и B</td></tr>
+          <tr><td>Анимация — финальное качество</td><td><strong>Seedance 2.0</strong></td><td>A и B</td></tr>
+          <tr><td>Анимация — говорящий персонаж</td><td><strong>Veo 3</strong></td><td>A и B</td></tr>
+          <tr><td>Видеопромпты</td><td><strong>Claude + ai-filmmaking скилл</strong></td><td>A и B</td></tr>
+          <tr><td>Монтаж</td><td><strong>CapCut / Edits</strong></td><td>A и B</td></tr>
+          <tr><td>Музыка</td><td><strong>Suno</strong></td><td>A и B</td></tr>
+          <tr><td>Озвучка</td><td><strong>ElevenLabs</strong></td><td>A и B</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top:16px">
+      <div class="callout-icon">⚡</div>
+      <p><strong>Kling 3.0 vs Seedance 2.0:</strong> Kling — дешевле, для тренировки и черновиков.
+      Seedance — качество уровня кино, лучше читает сложные промпты, для финального продакшна.</p>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ══════ КОСТЁР ══════ -->
+  <section id="kostyor">
+    <h2><span class="section-icon">🔥</span>«Костёр» — 8 сцен</h2>
+
+    <h3>Статус персонажей</h3>
+    <ul class="checklist">
+      <li class="done"><code>characters/chelovek.md</code> — Style Lock + промпты всех ракурсов</li>
+      <li class="done"><code>characters/sobaka.md</code> — Style Lock + промпты всех ракурсов + позы для сцен</li>
+      <li>Апскейл мастер-кадра Человека → референс-карта</li>
+      <li>Апскейл мастер-кадра Собаки → референс-карта</li>
+      <li>Кадр зимнего Юкона → карта локации (9 видов)</li>
+      <li>Для каждой из 8 сцен: раскадровка 3×3 с аннотациями</li>
+      <li>Для каждой сцены: видеопромпт Variant C</li>
+    </ul>
+
+    <h3>Сцены и эмоциональная дуга</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Событие</th><th>Состояние</th><th>Приоритетный план</th></tr>
+        </thead>
+        <tbody class="scene-row">
+          <tr><td>1</td><td>Рассвет, начало пути</td><td>Уверен, недооценивает мороз</td><td>Wide + slow push-in</td></tr>
+          <tr><td>2</td><td>Человек и Собака</td><td>Контраст: разум vs инстинкт</td><td>Medium + low angle (Собака)</td></tr>
+          <tr><td>3</td><td>Провал под лёд</td><td>Первый страх, справился</td><td>Wide → CU рук в воде</td></tr>
+          <tr><td>4</td><td>Первый костёр под елью</td><td>Облегчение, ложная победа</td><td>Warm CU огня → лицо</td></tr>
+          <tr><td>5</td><td>Снег гасит костёр</td><td>Поворот — смерть надежды</td><td>ECU снег на огонь → лицо</td></tr>
+          <tr><td>6</td><td>Борьба со спичками</td><td>Агония, пальцы не слушаются</td><td>ECU руки → дрожащие пальцы</td></tr>
+          <tr><td>7</td><td>Принятие смерти</td><td>Покой, закрытые глаза</td><td>CU лицо → slow dolly out</td></tr>
+          <tr><td>8</td><td>Собака уходит</td><td>— (Человек мёртв)</td><td>Low angle → Wide уходит</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Цветовая палитра по сценам</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:14px 0;">
+      <div style="display:flex;align-items:center;gap:12px;font-size:13px;">
+        <div style="width:6px;height:36px;border-radius:3px;background:#C8D8E8;flex-shrink:0;"></div>
+        <div><strong>Сцены 1–3</strong> — холодный синий <code>#C8D8E8</code>, плоский рассеянный свет</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;font-size:13px;">
+        <div style="width:6px;height:36px;border-radius:3px;background:linear-gradient(#E8A020,#C8D8E8);flex-shrink:0;"></div>
+        <div><strong>Сцены 4–5</strong> — тёплый <code>#E8A020</code> (огонь) vs холодный <code>#C8D8E8</code> (смерть огня)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;font-size:13px;">
+        <div style="width:6px;height:36px;border-radius:3px;background:#4a5a6a;flex-shrink:0;"></div>
+        <div><strong>Сцены 6–7</strong> — десатурация, серо-белый, угасание</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;font-size:13px;">
+        <div style="width:6px;height:36px;border-radius:3px;background:#8ab0c8;flex-shrink:0;"></div>
+        <div><strong>Сцена 8</strong> — нейтральный синий, Собака уходит в свет</div>
+      </div>
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ══════ СКИЛЛ ══════ -->
+  <section id="skill">
+    <h2><span class="section-icon">⚡</span>Claude Code + ai-filmmaking скилл</h2>
+
+    <p>Скилл установлен в <code>~/.claude/skills/ai-filmmaking/SKILL.md</code>.
+    Активируется автоматически при описании задачи — не нужно писать команду.</p>
+
+    <h3>Три шаблона скилла</h3>
+    <div class="variant-cards">
+      <div class="variant-card">
+        <div class="vname">Template 1</div>
+        <p>Character Sheet — лист персонажа 8 ракурсов.<br>Для NanoBanana Pro / GPT Image 2.</p>
+      </div>
+      <div class="variant-card">
+        <div class="vname">Template 2</div>
+        <p>Storyboard Grid 3×3 с аннотациями CAM/MOVE/MOOD.<br>Для NanoBanana Pro.</p>
+      </div>
+      <div class="variant-card">
+        <div class="vname">Template 3</div>
+        <p>Video Prompts — три варианта для Seedance / Kling.</p>
+      </div>
+    </div>
+
+    <h3>Три варианта видеопромптов</h3>
+    <div class="variant-cards">
+      <div class="variant-card">
+        <div class="vname">Variant A</div>
+        <p>Только текст. Нет референсов изображений.</p>
+      </div>
+      <div class="variant-card">
+        <div class="vname">Variant B</div>
+        <p>Только раскадровка как @image1.</p>
+      </div>
+      <div class="variant-card active">
+        <div class="vname">Variant C ← наш</div>
+        <p>Лист персонажа + раскадровка. Максимальная точность.</p>
+      </div>
+    </div>
+
+    <h3>Правила @image нумерации</h3>
+    <div class="callout warn">
+      <div class="callout-icon">⚠</div>
+      <p>Каждый референс — свой уникальный номер. Нельзя два разных файла под одним номером — персонажи сольются.<br>
+      <strong>@image1</strong> = лист персонажа Человека &nbsp;·&nbsp;
+      <strong>@image2</strong> = лист персонажа Собаки &nbsp;·&nbsp;
+      <strong>@image3</strong> = раскадровка</p>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>
