@@ -13,7 +13,7 @@
 
 ## Инструменты
 - [[Knowledge/tools/midjourney_params\|🖼 Параметры Midjourney]]
-- [[Knowledge/tools/syntx_workflow\|⚙️ Workflow в Syntx]]
+- [[Knowledge/tools/production_workflow\|⚙️ Воркфлоу (Syntx + Higgsfield)]]
 - [[Knowledge/tools/kling_veo_guide\|🎬 Kling и Veo]]
 
 ## Библиотека персонажей
@@ -26,5 +26,5 @@
 
 ## Пайплайн производства
 ```
-MJ v7 → NanoBanana → Clarity → Kling/Veo → Topaz → CapCut → Suno
+NanoBanana Pro / Seedream → Kling 3.0 / Seedance 2.0 → CapCut → Suno
 ```
