@@ -41,10 +41,15 @@
 
 ## Многоагентная система
 
+> **Система универсальна** — работает для любого короткого фильма (9:16).
+> Чтобы создать новый фильм: скопировать эту папку, очистить данные, запустить Агент 00.
+> Инструкция: `agents/00_orchestrator.md` → раздел «Универсальность системы».
+
 **Оркестратор:** `agents/00_orchestrator.md` — читать первым при старте сессии
 
 | Агент | Файл | Читает | Пишет |
 |-------|------|--------|-------|
+| Девелопер | `agents/00_developer.md` | идея / источник / `guides/idea_algorithm.md` | `script/synopsis.md`, `characters/`, `CLAUDE.md` |
 | Раскадровщик | `agents/01_storyboarder.md` | `script/`, `characters/` | `storyboard/scenes/` |
 | Генератор кадров | `agents/02_frame_generator.md` | `storyboard/`, `characters/` | `assets/registry.md`, `production/status.md` |
 | Видеограф | `agents/03_videographer.md` | `registry.md`, `transitions.md` | `production/video_prompts.md`, `transitions.md` |
