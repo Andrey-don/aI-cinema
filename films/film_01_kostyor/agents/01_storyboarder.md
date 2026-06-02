@@ -69,6 +69,13 @@ scene_01.md … scene_08.md
 
 ---
 
+## Справочники по планам и ракурсам
+
+При выборе планов и ракурсов читать: `_knowledge_base/cinematography/`
+Ключевой файл: `_knowledge_base/cinematography/smena_planov_nejrograf.md` — типы планов, правило третей, рабочий процесс NanoBanana.
+
+---
+
 ## Правила работы
 
 1. **Промпт слоя 3 = BASE-блок + описание конкретной сцены.** BASE-блок копировать дословно из `*_prompts_FULL.md` — не перефразировать.
